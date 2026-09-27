@@ -1,0 +1,20 @@
+# "App of Apps": the only thing you apply by hand.
+# Everything else is discovered from clusters/local/apps/ in git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: __REPO_URL__
+    targetRevision: __REPO_BRANCH__
+    path: clusters/local/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

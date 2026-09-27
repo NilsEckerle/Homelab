@@ -1,0 +1,21 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: homelab
+servers: 1
+agents: 2
+ports:
+  # so http://localhost:8080 reaches the cluster's ingress
+  - port: 8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 8443:443
+    nodeFilters:
+      - loadbalancer
+options:
+  k3s:
+    extraArgs:
+      # traefik ships with k3s; drop it if you prefer ingress-nginx
+      - arg: --disable=traefik
+        nodeFilters:
+          - server:*
