@@ -30,8 +30,8 @@ kubectl apply -n argocd -f \
 kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
 
 # 3. hand over to git
-sed -e "s|__REPO_URL__|${REPO_URL}|g" \
-    -e "s|__REPO_BRANCH__|${REPO_BRANCH}|g" \
+sed -e "s|git@github.com:NilsEckerle/Homelab.git|${REPO_URL}|g" \
+    -e "s|main|${REPO_BRANCH}|g" \
     clusters/local/root-app.yaml | kubectl apply -f -
 
 cat <<MSG

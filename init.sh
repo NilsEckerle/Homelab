@@ -5,6 +5,6 @@
 set -euo pipefail
 REPO_URL="${REPO_URL:-$(git remote get-url origin)}"
 REPO_BRANCH="${REPO_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
-grep -rl -e __REPO_URL__ -e __REPO_BRANCH__ --exclude-dir=.git . \
-  | xargs sed -i -e "s|__REPO_URL__|${REPO_URL}|g" -e "s|__REPO_BRANCH__|${REPO_BRANCH}|g"
+grep -rl -e git@github.com:NilsEckerle/Homelab.git -e main --exclude-dir=.git . \
+  | xargs sed -i -e "s|git@github.com:NilsEckerle/Homelab.git|${REPO_URL}|g" -e "s|main|${REPO_BRANCH}|g"
 echo "stamped ${REPO_URL} @ ${REPO_BRANCH} - now: git commit -am 'init' && git push"

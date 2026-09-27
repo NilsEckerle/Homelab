@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: __REPO_URL__
-    targetRevision: __REPO_BRANCH__
+    repoURL: git@github.com:NilsEckerle/Homelab.git
+    targetRevision: main
     path: apps/podinfo
   destination:
     server: https://kubernetes.default.svc
