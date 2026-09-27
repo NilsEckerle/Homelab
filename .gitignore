@@ -1,3 +1,4 @@
 *.env
 kubeconfig
 .DS_Store
+.kube/

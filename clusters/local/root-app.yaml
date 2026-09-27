@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@github.com:NilsEckerle/Homelab.git
+    repoURL: https://github.com/NilsEckerle/Homelab.git
     targetRevision: main
     path: clusters/local/apps
   destination:

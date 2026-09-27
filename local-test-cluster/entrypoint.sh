@@ -9,7 +9,7 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
     > /sys/fs/cgroup/cgroup.subtree_control
 fi
 
-dockerd >/var/log/dockerd.log 2>&1 &
+setsid dockerd >/var/log/dockerd.log 2>&1 &
 
 i=0
 while ! docker info >/dev/null 2>&1; do

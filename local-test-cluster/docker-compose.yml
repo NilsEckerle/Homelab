@@ -1,10 +1,12 @@
 services:
   dind:
+    init: true
     build: .
     privileged: true
     stdin_open: true
     tty: true
     environment:
+      KUBECONFIG: /work/.kube/config
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: "safe.directory"
       GIT_CONFIG_VALUE_0: "*"
