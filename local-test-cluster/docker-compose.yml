@@ -1,0 +1,23 @@
+services:
+  dind:
+    build: .
+    privileged: true
+    stdin_open: true
+    tty: true
+    environment:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "*"
+    volumes:
+      - dind-lib:/var/lib/docker
+      - /lib/modules:/lib/modules:ro
+      - ..:/work
+    working_dir: /work
+    ports:
+      - "6550:6550"
+      - "8080:80"
+      - "8081:8081"
+    command: ["bash"]
+
+volumes:
+  dind-lib:
