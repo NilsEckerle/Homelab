@@ -18,6 +18,8 @@ echo "==> repo:   $REPO_URL @ $REPO_BRANCH"
 # 1. cluster
 if k3d cluster list | grep -qw "$CLUSTER_NAME"; then
   echo "==> cluster '$CLUSTER_NAME' already exists, reusing"
+  k3d cluster start "$CLUSTER_NAME" >/dev/null
+  k3d kubeconfig merge "$CLUSTER_NAME" --kubeconfig-merge-default >/dev/null
 else
   k3d cluster create --config k3d/cluster.yaml
 fi
@@ -30,9 +32,7 @@ kubectl apply -n argocd -f \
 kubectl -n argocd rollout status deploy/argocd-server --timeout=300s
 
 # 3. hand over to git
-sed -e "s|git@github.com:NilsEckerle/Homelab.git|${REPO_URL}|g" \
-    -e "s|main|${REPO_BRANCH}|g" \
-    clusters/local/root-app.yaml | kubectl apply -f -
+kubectl apply -f clusters/local/root-app.yaml
 
 cat <<MSG
 
