@@ -52,15 +52,22 @@ for stack in "${wanted[@]}"; do
   envfile=$(mktemp -p /dev/shm 2>/dev/null || mktemp)   # RAM-backed when available
   (
     trap 'rm -f "$envfile"' EXIT
+    # NB: set -e is off inside this subshell (it is followed by ||), so every
+    # command needs an explicit exit.
     if [ -f "$dir/secrets.enc.env" ]; then
-      sops -d --input-type dotenv --output-type dotenv "$dir/secrets.enc.env" > "$envfile"
+      sops -d --input-type dotenv --output-type dotenv "$dir/secrets.enc.env" > "$envfile" || exit 1
     fi
     dc=(docker compose -p "$stack" --project-directory "$dir" -f "$dir/compose.yaml" --env-file "$envfile")
     if "${dc[@]}" --profile restore config --services | grep -qx restore; then
-      "${dc[@]}" --profile restore run --rm restore
+      "${dc[@]}" --profile restore run --rm restore || exit 42
     fi
-    "${dc[@]}" up -d --remove-orphans
-  ) || { log "stack $stack FAILED"; failed=1; }
+    "${dc[@]}" up -d --remove-orphans || exit 1
+  ) || {
+    rc=$?
+    log "stack $stack FAILED"
+    [ "$rc" -eq 42 ] && die "restore failed, not starting any further stacks"
+    failed=1
+  }
 done
 
 printf '%s\n' "${wanted[@]}" > "$STATE_DIR/stacks"
