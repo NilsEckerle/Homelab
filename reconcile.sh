@@ -44,6 +44,10 @@ failed=0
 for stack in "${wanted[@]}"; do
   dir="stacks/$stack"
   [ -f "$dir/compose.yaml" ] || { log "missing $dir/compose.yaml"; failed=1; continue; }
+  if [ -f "$dir/secrets.example.env" ] && [ ! -f "$dir/secrets.enc.env" ]; then
+    log "stack $stack FAILED: needs $dir/secrets.enc.env (see secrets.example.env)"
+    failed=1; continue
+  fi
   log "stack $stack"
   envfile=$(mktemp -p /dev/shm 2>/dev/null || mktemp)   # RAM-backed when available
   (
