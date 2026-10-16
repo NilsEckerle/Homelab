@@ -1,6 +1,6 @@
 runner:
   capacity: 1
 container:
-  network: gitea_default
+  network: proxy
   valid_volumes:
     - '**'
