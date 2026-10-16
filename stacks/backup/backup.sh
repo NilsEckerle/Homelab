@@ -36,5 +36,9 @@ case "${1:-}" in
       sleep "${BACKUP_INTERVAL:-86400}"
     done
     ;;
-  *) echo "usage: backup.sh restore|loop" >&2; exit 2 ;;
+  restic)
+    shift
+    r "$@"
+    ;;
+  *) echo "usage: backup.sh restore|loop|restic <args>" >&2; exit 2 ;;
 esac
