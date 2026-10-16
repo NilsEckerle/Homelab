@@ -9,7 +9,7 @@ x-restic: &restic
     SB_USER: ${SB_USER}
     SB_HOST: ${SB_HOST}
     SB_PORT: ${SB_PORT:-23}
-    SB_PATH: ${SB_PATH:-/restic}
+    SB_PATH: ${SB_PATH:-restic}
     SB_SSH_KEY_B64: ${SB_SSH_KEY_B64}
     SB_KNOWN_HOSTS_B64: ${SB_KNOWN_HOSTS_B64}
     BACKUP_INTERVAL: ${BACKUP_INTERVAL:-86400}
