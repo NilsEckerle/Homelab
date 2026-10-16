@@ -1,25 +1,17 @@
 # One block per site. Reloads by itself when this file changes (--watch).
-
-# --- Internet via FRITZ!Box MyFRITZ name (needs ports 80+443 forwarded here) ---
-# Caddy gets and renews the Let's Encrypt certificate by itself.
-# A myfritz.net name is ONE hostname, so extra sites need a path or your own
-# domain (CNAME app.example.com -> YOURNAME.myfritz.net, one block per name).
-
 {
-	email nilseckerle2001@protonmail.com          # Let's Encrypt expiry notices
+	email nilseckerle2001@protonmail.com
 }
 
 qyo7ixnxmemepulm.myfritz.net {
-	reverse_proxy hello:80
-}
+	# Gitea lives under /git/ ; the prefix is stripped, ROOT_URL tells Gitea about it.
+	redir /git /git/ permanent
+	handle_path /git/* {
+		reverse_proxy gitea:3000
+	}
 
-# With your own domain, one block per site:
-# hello.example.com {
-# 	reverse_proxy hello:80
-# }
-# app.example.com {
-# 	basic_auth {                    # caddy hash-password to create the hash
-# 		nils <hash>
-# 	}
-# 	reverse_proxy app:3000
-# }
+	# Everything else is Foundry (players join at /join).
+	handle {
+		reverse_proxy foundry:30000
+	}
+}
