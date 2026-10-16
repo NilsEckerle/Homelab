@@ -52,7 +52,7 @@ for stack in "${wanted[@]}"; do
       sops -d --input-type dotenv --output-type dotenv "$dir/secrets.enc.env" > "$envfile"
     fi
     dc=(docker compose -p "$stack" --project-directory "$dir" -f "$dir/compose.yaml" --env-file "$envfile")
-    if "${dc[@]}" config --services | grep -qx restore; then
+    if "${dc[@]}" --profile restore config --services | grep -qx restore; then
       "${dc[@]}" --profile restore run --rm restore
     fi
     "${dc[@]}" up -d --remove-orphans
