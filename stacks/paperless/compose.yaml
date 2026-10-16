@@ -41,7 +41,7 @@ services:
         done
 
   webserver:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest   # PIN to the running version, see runbook
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
     restart: unless-stopped
     depends_on: [db, broker, gotenberg, tika]
     ports:
