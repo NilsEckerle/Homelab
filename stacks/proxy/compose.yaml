@@ -1,0 +1,19 @@
+# Reverse proxy for all sites. Other stacks join the shared "proxy" network
+# and are listed in caddy/Caddyfile. Must be deployed before them.
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    command: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile --watch
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy:/etc/caddy:ro            # directory, not a single file: git replaces files
+      - /srv/data/proxy/caddy:/data      # certificates; under /srv/data so it is backed up
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    name: proxy

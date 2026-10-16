@@ -1,0 +1,25 @@
+# One block per site. Reloads by itself when this file changes (--watch).
+
+# --- Internet via FRITZ!Box MyFRITZ name (needs ports 80+443 forwarded here) ---
+# Caddy gets and renews the Let's Encrypt certificate by itself.
+# A myfritz.net name is ONE hostname, so extra sites need a path or your own
+# domain (CNAME app.example.com -> YOURNAME.myfritz.net, one block per name).
+
+{
+	email nilseckerle2001@protonmail.com          # Let's Encrypt expiry notices
+}
+
+qyo7ixnxmemepulm.myfritz.net {
+	reverse_proxy hello:80
+}
+
+# With your own domain, one block per site:
+# hello.example.com {
+# 	reverse_proxy hello:80
+# }
+# app.example.com {
+# 	basic_auth {                    # caddy hash-password to create the hash
+# 		nils <hash>
+# 	}
+# 	reverse_proxy app:3000
+# }
