@@ -1,0 +1,82 @@
+# Paperless-ngx, reachable only over Tailscale (bound to the Tailscale IP, no Caddy block).
+# Files live in /srv/data/paperless (backed up). The Postgres data directory is a Docker
+# volume on purpose: on a fresh machine it is empty and Postgres restores itself from the
+# dump in /srv/data/paperless/dump, which is a consistent copy, unlike live DB files.
+services:
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
+  db:
+    image: docker.io/library/postgres:18
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - /srv/data/paperless/dump:/docker-entrypoint-initdb.d:ro   # runs only on an EMPTY data dir
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: ${PAPERLESS_DBPASS:?set in secrets.enc.env}
+
+  db-dump:
+    image: docker.io/library/postgres:18
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      PGPASSWORD: ${PAPERLESS_DBPASS:?}
+    volumes:
+      - /srv/data/paperless/dump:/dump
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until pg_isready -h db -U paperless -q; do sleep 2; done
+        sleep 60   # on a restore, let initdb finish before the first dump overwrites anything
+        while true; do
+          pg_dump -h db -U paperless --clean --if-exists paperless > /dump/paperless.sql.tmp \
+            && mv /dump/paperless.sql.tmp /dump/paperless.sql \
+            || echo "dump failed"
+          sleep 21600
+        done
+
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest   # PIN to the running version, see runbook
+    restart: unless-stopped
+    depends_on: [db, broker, gotenberg, tika]
+    ports:
+      - "${TAILSCALE_IP:?set in secrets.enc.env}:8000:8000"
+    volumes:
+      - /srv/data/paperless/data:/usr/src/paperless/data
+      - /srv/data/paperless/media:/usr/src/paperless/media
+      - /srv/data/paperless/export:/usr/src/paperless/export
+      - /srv/data/paperless/consume:/usr/src/paperless/consume
+    environment:
+      USERMAP_UID: "1007"
+      USERMAP_GID: "1008"
+      PAPERLESS_OCR_LANGUAGES: deu eng
+      PAPERLESS_OCR_LANGUAGE: deu
+      PAPERLESS_URL: http://${TAILSCALE_IP}:8000
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?}
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBPASS: ${PAPERLESS_DBPASS:?}
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.25
+    restart: unless-stopped
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  tika:
+    image: docker.io/apache/tika@sha256:90b7fa1dc018434075fce9e1d9b88b1e3d0ea6979d0cf86e116c79a8073ae973   # was :latest on 2026-10-17
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
