@@ -2,3 +2,5 @@
 # top to bottom. Put backup first: it restores empty data dirs before apps start.
 backup
 whoami
+proxy
+hello

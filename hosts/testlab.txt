@@ -2,3 +2,5 @@
 fake-storagebox
 backup
 whoami
+proxy
+hello
