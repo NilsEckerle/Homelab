@@ -4,3 +4,6 @@ backup
 whoami
 proxy
 hello
+foundry
+gitea
+paperless
