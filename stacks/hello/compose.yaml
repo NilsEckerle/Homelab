@@ -1,0 +1,13 @@
+# Example site: no published ports, only reachable through the proxy.
+services:
+  hello:
+    image: traefik/whoami:v1.10.3
+    restart: unless-stopped
+    networks:
+      proxy:
+        aliases: [hello]      # the name used in the Caddyfile
+
+networks:
+  proxy:
+    external: true
+    name: proxy
