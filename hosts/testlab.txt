@@ -1,0 +1,4 @@
+# Used only by the Docker-in-Docker test box (hostname "testlab").
+fake-storagebox
+backup
+whoami

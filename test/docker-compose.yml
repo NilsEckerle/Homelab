@@ -1,0 +1,9 @@
+services:
+  testlab:
+    build: .
+    hostname: testlab          # selects hosts/testlab.txt
+    privileged: true           # needed for the inner dockerd
+    environment:
+      DOCKER_TLS_CERTDIR: ""   # plain unix socket inside the box
+    volumes:
+      - ..:/src:ro             # the repo under test

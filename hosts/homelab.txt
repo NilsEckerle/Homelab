@@ -1,0 +1,4 @@
+# Stacks for the machine whose hostname is "homelab", one per line, deployed
+# top to bottom. Put backup first: it restores empty data dirs before apps start.
+backup
+whoami

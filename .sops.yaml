@@ -1,0 +1,7 @@
+# Who may decrypt? Every age PUBLIC key listed here. sops encrypts a random
+# data key once per recipient; the holder of any ONE matching private key can
+# decrypt. Add a second key (e.g. a paper backup) so losing one is not fatal.
+creation_rules:
+  - path_regex: secrets(\.enc)?\.env$
+    age: >-
+      age1REPLACE_WITH_YOUR_PUBLIC_KEY

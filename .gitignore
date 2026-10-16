@@ -1,0 +1,3 @@
+# plaintext secrets never get committed, only *.enc.env
+secrets.env
+.env

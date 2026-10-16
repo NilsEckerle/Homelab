@@ -1,0 +1,32 @@
+# restic -> Hetzner Storage Box over SFTP (port 23). Client-side encrypted.
+# Data lives in bind mount /srv/data; configs live in git.
+x-restic: &restic
+  image: restic/restic:0.17.3
+  hostname: homelab            # keeps snapshot host stable across rebuilds
+  entrypoint: ["/bin/sh", "/backup.sh"]
+  environment:
+    RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+    SB_USER: ${SB_USER}
+    SB_HOST: ${SB_HOST}
+    SB_PORT: ${SB_PORT:-23}
+    SB_PATH: ${SB_PATH:-/restic}
+    SB_SSH_KEY_B64: ${SB_SSH_KEY_B64}
+    SB_KNOWN_HOSTS_B64: ${SB_KNOWN_HOSTS_B64}
+    BACKUP_INTERVAL: ${BACKUP_INTERVAL:-86400}
+  volumes:
+    - ./backup.sh:/backup.sh:ro
+    - /srv/data:/data
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  # reconcile.sh runs this to completion BEFORE `up` (convention: a service
+  # named "restore" with profile "restore"). No-op unless /srv/data is empty.
+  restore:
+    <<: *restic
+    profiles: ["restore"]
+    command: ["restore"]
+  restic:
+    <<: *restic
+    restart: unless-stopped
+    command: ["loop"]

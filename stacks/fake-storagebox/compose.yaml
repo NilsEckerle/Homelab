@@ -1,0 +1,13 @@
+# TEST ONLY: stands in for the Hetzner Storage Box (listed in hosts/testlab.txt).
+# Key files are created by test/prepare.sh inside the test box.
+services:
+  sftp:
+    image: atmoz/sftp:alpine
+    restart: unless-stopped
+    command: backup::1001:100:upload
+    ports:
+      - "2222:22"
+    volumes:
+      - /opt/testlab/sftp/ssh_host_ed25519_key:/etc/ssh/ssh_host_ed25519_key:ro
+      - /opt/testlab/sftp/client.pub:/home/backup/.ssh/keys/client.pub:ro
+      - /opt/testlab/sftp/upload:/home/backup/upload
