@@ -20,7 +20,12 @@ chown 1001:100 /opt/testlab/sftp/upload
 
 work=/tmp/work
 mkdir -p $work && cp -r /src/. $work/ && cd $work && rm -rf .git test
-sed -i "s/age1REPLACE_WITH_YOUR_PUBLIC_KEY/$pub/" .sops.yaml
+# own sops config + no real secrets, whatever the repo under test contains
+rm -f stacks/backup/secrets.enc.env
+# own Caddyfile: the real one names a public host, and failed Let's Encrypt
+# validations from this offline box would count against that hostname
+printf 'http://hello.lan {\n\treverse_proxy hello:80\n}\n' > stacks/proxy/caddy/Caddyfile
+printf 'creation_rules:\n  - path_regex: secrets(\\.enc)?\\.env$\n    age: %s\n' "$pub" > .sops.yaml
 hostkey=$(cut -d' ' -f1,2 /opt/testlab/sftp/ssh_host_ed25519_key.pub)
 cat > stacks/backup/secrets.env <<EOT
 RESTIC_PASSWORD=test-password
@@ -43,6 +48,8 @@ mkdir -p /srv/data/demo && echo hello > /srv/data/demo/hello.txt
 REPO_URL=/remote/homelab.git TARGET=/opt/homelab /src/bootstrap.sh --no-schedule
 wait_for 60 "whoami on :8080" curl -fs localhost:8080
 echo "whoami answers on :8080"
+wait_for 60 "hello.lan via proxy" curl -fs -H 'Host: hello.lan' localhost:80
+echo "proxy routes hello.lan"
 
 step "3. backup reaches the (fake) storage box"
 wait_for 90 "restic snapshot on storage box" bash -c 'ls /opt/testlab/sftp/upload/restic/snapshots/* 2>/dev/null | grep -q .'
