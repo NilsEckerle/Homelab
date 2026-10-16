@@ -69,7 +69,6 @@ real secrets.
 
 ## Known limits
 
-- Not run end to end yet when this was written; expect to fix small things.
 - sops/age downloads are version-pinned but not checksum-verified.
 - Removing a stack from a host file runs `down` (volumes and /srv/data kept).
 - Restore needs the storage box reachable on first boot; otherwise the run
