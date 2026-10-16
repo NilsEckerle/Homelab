@@ -1,0 +1,6 @@
+runner:
+  capacity: 1
+container:
+  network: gitea_default
+  valid_volumes:
+    - '**'
