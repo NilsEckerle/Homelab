@@ -1,0 +1,89 @@
+# Gitea behind Caddy at https://<host>/git/ (Caddy strips the /git prefix).
+# Data (repos + SQLite) lives in /srv/data/gitea/data and is backed up by restic.
+networks:
+  default:
+    ipam:
+      config:
+        # Pinned: the host mail relay (port 2525) only accepts this subnet in UFW
+        # and Gitea reaches it at the gateway 172.23.0.1.
+        - subnet: 172.23.0.0/16
+  proxy:
+    external: true
+    name: proxy
+
+services:
+  server:
+    image: docker.gitea.com/gitea:1.27.3
+    container_name: gitea
+    restart: unless-stopped
+    networks:
+      default: {}
+      proxy:
+        aliases: [gitea]
+    environment:
+      - USER_UID=1005
+      - USER_GID=1005
+      - GITEA__server__DOMAIN=qyo7ixnxmemepulm.myfritz.net
+      - GITEA__server__ROOT_URL=https://qyo7ixnxmemepulm.myfritz.net/git/
+      - GITEA__server__SSH_DOMAIN=qyo7ixnxmemepulm.myfritz.net
+      - GITEA__server__SSH_PORT=2222
+      - GITEA__server__SSH_LISTEN_PORT=22
+      - GITEA__server__LFS_START_SERVER=true
+      - GITEA__server__LFS_ALLOW_PURE_SSH=true
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=true
+      - GITEA__repository__DEFAULT_PRIVATE=private
+      - GITEA__security__INSTALL_LOCK=true
+      - GITEA__log__MODE=file
+      - GITEA__mailer__ENABLED=true
+      - GITEA__mailer__PROTOCOL=smtp
+      - GITEA__mailer__SMTP_ADDR=172.23.0.1
+      - GITEA__mailer__SMTP_PORT=2525
+      - GITEA__mailer__FROM=gitea@kagari.future-gadget-lab.com
+    volumes:
+      - /srv/data/gitea/data:/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "2222:22"
+
+  runner:
+    image: docker.gitea.com/act_runner@sha256:131ff842ec12453108f1c1a454031c325d3c95e4af459979a2e303e12d99c98c   # was :latest on 2026-10-17
+    container_name: gitea-runner
+    restart: unless-stopped
+    depends_on: [server]
+    networks: [default, proxy]
+    environment:
+      - GITEA_INSTANCE_URL=http://server:3000
+      - GITEA_RUNNER_NAME=kagari
+      - CONFIG_FILE=/data/config.yaml
+    volumes:
+      # /data/.runner (registration) is part of the backed-up data, so no token is needed
+      - /srv/data/gitea/runner:/data
+      - type: bind
+        source: ./runner-config.yaml        # copy from the old server, see runbook
+        target: /data/config.yaml
+        read_only: true
+        bind:
+          create_host_path: false           # fail loudly instead of creating a directory
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Consistent copy of the SQLite database next to the data, so restic never has to
+  # trust a live database file. Restore: stop gitea, copy dump/gitea.db over gitea/gitea.db.
+  dump:
+    image: alpine:3.23
+    restart: unless-stopped
+    depends_on: [server]
+    volumes:
+      - /srv/data/gitea/data:/data
+    command:
+      - /bin/sh
+      - -c
+      - |
+        apk add --no-cache sqlite >/dev/null
+        mkdir -p /data/dump
+        while true; do
+          sqlite3 /data/gitea/gitea.db ".timeout 10000" ".backup '/data/dump/gitea.db.tmp'" \
+            && mv /data/dump/gitea.db.tmp /data/dump/gitea.db \
+            || echo "dump failed"
+          sleep 21600
+        done
