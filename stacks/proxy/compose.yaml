@@ -10,6 +10,7 @@ services:
       - "443:443"
     volumes:
       - ./caddy:/etc/caddy:ro            # directory, not a single file: git replaces files
+      - ./site:/srv/site:ro              # the overview page served at /
       - /srv/data/proxy/caddy:/data      # certificates; under /srv/data so it is backed up
     networks:
       - proxy

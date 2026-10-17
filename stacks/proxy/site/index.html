@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kagari</title>
+<style>
+  :root { --bg:#f6f6f4; --fg:#1d1d1b; --muted:#6b6b66; --card:#fff; --line:#e2e2dc; --accent:#2f6f5e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161715; --fg:#ecece6; --muted:#9a9a92; --card:#1f201e; --line:#2f302d; --accent:#6fc2a9; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:40rem; margin:0 auto; padding:3rem 1rem; }
+  h1 { font-size:1.5rem; margin:0 0 .25rem; }
+  p.sub { color:var(--muted); margin:0 0 2rem; }
+  ul { list-style:none; padding:0; margin:0; display:grid; gap:.75rem; }
+  a.card { display:block; padding:1rem 1.25rem; background:var(--card);
+           border:1px solid var(--line); border-radius:.6rem;
+           color:inherit; text-decoration:none; }
+  a.card:hover, a.card:focus-visible { border-color:var(--accent); outline:none; }
+  a.card strong { display:block; color:var(--accent); }
+  a.card span { color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>kagari</h1>
+  <p class="sub">Services on this server</p>
+  <ul>
+    <li><a class="card" href="/foundry/"><strong>Foundry VTT</strong><span>Virtual tabletop. Players join here.</span></a></li>
+    <li><a class="card" href="/git/"><strong>Gitea</strong><span>Git hosting. Sign-in required.</span></a></li>
+  </ul>
+</main>
+</body>
+</html>
