@@ -13,7 +13,6 @@ services:
       FOUNDRY_USERNAME: ${FOUNDRY_USERNAME:?}
       FOUNDRY_PASSWORD: ${FOUNDRY_PASSWORD:?}
       FOUNDRY_LICENSE_KEY: ${FOUNDRY_LICENSE_KEY:-}
-      FOUNDRY_VERSION: ${FOUNDRY_VERSION}
       FOUNDRY_PROXY_SSL: "true"
       FOUNDRY_PROXY_PORT: "443"
       FOUNDRY_ROUTE_PREFIX: foundry   # served at /foundry/ ; Caddy must NOT strip the prefix
