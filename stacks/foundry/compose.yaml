@@ -1,4 +1,4 @@
-# FoundryVTT at the site root behind Caddy (players use /join).
+# FoundryVTT at https://<host>/foundry/ behind Caddy (players use /foundry/join).
 # Data (worlds, modules, licence, options) lives in /srv/data/foundry/data -> container /data.
 # Image: felddy/foundryvtt downloads the pinned Foundry version with your account.
 services:
@@ -16,7 +16,8 @@ services:
       FOUNDRY_VERSION: ${FOUNDRY_VERSION}
       FOUNDRY_PROXY_SSL: "true"
       FOUNDRY_PROXY_PORT: "443"
-      # the admin password stays in Config/admin.txt from the old install
+      FOUNDRY_ROUTE_PREFIX: foundry   # served at /foundry/ ; Caddy must NOT strip the prefix
+      FOUNDRY_ADMIN_KEY: ${FOUNDRY_ADMIN_KEY:?set in secrets.enc.env}   # written to Config/admin.txt on every start
     volumes:
       - /srv/data/foundry/data:/data
 
