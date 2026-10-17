@@ -3,7 +3,9 @@
 # Image: felddy/foundryvtt downloads the pinned Foundry version with your account.
 services:
   foundry:
-    image: felddy/foundryvtt:${FOUNDRY_VERSION:?set in secrets.enc.env}
+    # Foundry version = image tag (build + ".0"). To update: back up, change the tag, push.
+    # Worlds migrate one way, so never go back to an older tag after opening a world.
+    image: felddy/foundryvtt:14.369
     hostname: foundry
     restart: unless-stopped
     networks:
