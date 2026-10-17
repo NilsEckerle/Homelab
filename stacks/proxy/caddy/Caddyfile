@@ -5,17 +5,19 @@
 
 qyo7ixnxmemepulm.myfritz.net {
 	# Gitea under /git/ ; the prefix is stripped, ROOT_URL tells Gitea about it.
-	redir /git /git/ permanent
+	redir /git /git/
 	handle_path /git/* {
 		reverse_proxy gitea:3000
 	}
 
-	# Foundry under /foundry/ ; it knows its prefix (FOUNDRY_ROUTE_PREFIX), so NO stripping here.
-	redir /foundry /foundry/ permanent
-	handle /foundry/* {
+	# Foundry under /foundry ; it knows its prefix (FOUNDRY_ROUTE_PREFIX), so NO stripping here.
+	# No redirect of our own: Foundry itself redirects /foundry/ -> /foundry, and a rule
+	# in the other direction makes a redirect loop.
+	@foundry path /foundry /foundry/*
+	handle @foundry {
 		reverse_proxy foundry:30000
 	}
-	redir /join /foundry/join permanent    # old player link keeps working
+	redir /join /foundry/join    # old player link keeps working
 
 	# Everything else: the service overview page (stacks/proxy/site).
 	handle {
