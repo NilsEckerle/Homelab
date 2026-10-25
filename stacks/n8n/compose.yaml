@@ -1,0 +1,24 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.123.87
+    restart: unless-stopped
+    environment:
+      N8N_PATH: /n8n/
+      N8N_HOST: qyo7ixnxmemepulm.myfritz.net
+      N8N_PROTOCOL: https
+      N8N_EDITOR_BASE_URL: https://qyo7ixnxmemepulm.myfritz.net/n8n/
+      WEBHOOK_URL: https://qyo7ixnxmemepulm.myfritz.net/n8n/
+      N8N_PROXY_HOPS: "1"
+      GENERIC_TIMEZONE: Europe/Berlin
+      TZ: Europe/Berlin
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks: [proxy]
+
+volumes:
+  n8n_data:
+
+networks:
+  proxy:
+    external: true
