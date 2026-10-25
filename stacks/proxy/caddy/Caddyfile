@@ -21,7 +21,7 @@ qyo7ixnxmemepulm.myfritz.net {
 
   # n8n under /n8n ; it knows its prefix (N8N_PATH), so NO stripping here.
   # Webhooks live under /n8n/webhook/... and WebSockets work through reverse_proxy as is.
-  @n8nstatic path /n8n/assets/* /n8n/static/* /n8n/favicon.ico
+  @n8nstatic path /n8n/assets/* /n8n/static/* /n8n/favicon.ico /n8n/rest/* /n8n/types/* /n8n/icons/*
   handle @n8nstatic {
       uri strip_prefix /n8n
       reverse_proxy n8n:5678
