@@ -2,8 +2,9 @@
 fake-storagebox
 backup
 whoami
-proxy
-hello
-foundry
-gitea
-paperless
+# proxy
+# hello
+# foundry
+# gitea
+# paperless
+# n8n
