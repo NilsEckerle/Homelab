@@ -3,7 +3,7 @@ services:
     image: docker.n8n.io/n8nio/n8n:1.123.87
     restart: unless-stopped
     environment:
-      N8N_PATH: /n8n/
+      N8N_PATH: /n8n
       N8N_HOST: qyo7ixnxmemepulm.myfritz.net
       N8N_PROTOCOL: https
       N8N_EDITOR_BASE_URL: https://qyo7ixnxmemepulm.myfritz.net/n8n/
