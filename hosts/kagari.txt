@@ -5,4 +5,4 @@ proxy
 foundry
 gitea
 paperless
-hello
+n8n
