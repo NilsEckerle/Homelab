@@ -7,4 +7,4 @@ gitea
 paperless
 # n8n
 matrix
-# dozzle
+dozzle
