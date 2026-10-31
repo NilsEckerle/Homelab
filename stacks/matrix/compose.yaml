@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in secrets.enc.env}
     volumes:
       # - /srv/data/matrix/synapse:/data
-      - /tmp/data/matrix/synapse:/data
+      - /tmp/data2/matrix/synapse:/data
     networks:
       proxy:
         aliases: [synapse]
@@ -44,7 +44,7 @@ services:
       retries: 10
     volumes:
       # - /srv/data/matrix/postgres:/var/lib/postgresql/data
-      - /tmp/data/matrix/postgres:/var/lib/postgresql/data
+      - /tmp/data2/matrix/postgres:/var/lib/postgresql/data
     networks:
       - internal
 
@@ -61,7 +61,7 @@ services:
       MATRIX_ADMIN_PASSWORD: ${MATRIX_ADMIN_PASSWORD:?set in secrets.enc.env}
     volumes:
       # - /srv/data/matrix/synapse:/data:ro
-      - /tmp/data/matrix/synapse:/data:ro
+      - /tmp/data2/matrix/synapse:/data:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - 'register_new_matrix_user -c /data/homeserver.yaml -u "$$MATRIX_ADMIN_USER" -p "$$MATRIX_ADMIN_PASSWORD" --admin http://synapse:8008 || echo "admin exists or registration failed, ignoring"'
