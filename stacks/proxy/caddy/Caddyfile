@@ -31,6 +31,22 @@ qyo7ixnxmemepulm.myfritz.net {
       reverse_proxy n8n:5678
   }
 
+	# Matrix: fixed paths at the root, no prefix, no stripping.
+	@matrix path /_matrix/* /_synapse/client/*
+	handle @matrix {
+		reverse_proxy synapse:8008
+	}
+
+	# Delegation so federation works over 443 (no port 8448 needed).
+	handle /.well-known/matrix/server {
+		header Content-Type application/json
+		respond `{"m.server": "qyo7ixnxmemepulm.myfritz.net:443"}`
+	}
+	handle /.well-known/matrix/client {
+		header Content-Type application/json
+		header Access-Control-Allow-Origin *
+		respond `{"m.homeserver": {"base_url": "https://qyo7ixnxmemepulm.myfritz.net"}}`
+	}
 
 	# Everything else: the service overview page (stacks/proxy/site).
 	handle {

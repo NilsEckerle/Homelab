@@ -1,0 +1,75 @@
+# Synapse (Matrix) behind Caddy. Fully declarative: no manual commands needed.
+# - Docker creates the bind-mount dirs itself; the synapse image (started as root)
+#   chowns /data and drops privileges, postgres does the same for its dir.
+# - On first start, synapse generates /data/homeserver.yaml from the env vars below
+#   (incl. random secrets and the signing key) and reuses it afterwards.
+# - "create-admin" is a one-shot that registers the admin user from secrets.enc.env.
+# Client/federation paths live at the domain root (/_matrix/*), see Caddyfile.
+services:
+  synapse:
+    image: matrixdotorg/synapse:v1.164.1
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SYNAPSE_SERVER_NAME: qyo7ixnxmemepulm.myfritz.net   # permanent, cannot change later
+      SYNAPSE_REPORT_STATS: "no"
+      SYNAPSE_NO_TLS: "1"
+      POSTGRES_HOST: db
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in secrets.enc.env}
+    volumes:
+      # - /srv/data/matrix/synapse:/data
+      - /tmp/data/matrix/synapse:/data
+    networks:
+      proxy:
+        aliases: [synapse]
+      internal:
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in secrets.enc.env}
+      POSTGRES_DB: synapse
+      # Synapse requires C collation.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      # - /srv/data/matrix/postgres:/var/lib/postgresql/data
+      - /tmp/data/matrix/postgres:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  # One-shot: creates the admin account via the shared secret in the generated config.
+  # Re-runs fail harmlessly ("user ID already taken") and are ignored.
+  create-admin:
+    image: matrixdotorg/synapse:latest
+    restart: "no"
+    depends_on:
+      synapse:
+        condition: service_healthy
+    environment:
+      MATRIX_ADMIN_USER: ${MATRIX_ADMIN_USER:?set in secrets.enc.env}
+      MATRIX_ADMIN_PASSWORD: ${MATRIX_ADMIN_PASSWORD:?set in secrets.enc.env}
+    volumes:
+      # - /srv/data/matrix/synapse:/data:ro
+      - /tmp/data/matrix/synapse:/data:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - 'register_new_matrix_user -c /data/homeserver.yaml -u "$$MATRIX_ADMIN_USER" -p "$$MATRIX_ADMIN_PASSWORD" --admin http://synapse:8008 || echo "admin exists or registration failed, ignoring"'
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+  internal:
