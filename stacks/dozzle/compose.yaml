@@ -1,0 +1,20 @@
+# Dozzle: read-only live container log viewer at https://<host>/logs (behind Caddy basic auth).
+# Needs the Docker socket (read-only). Never expose it without the auth in the Caddyfile.
+# Remove this stack and the /logs block in the Caddyfile if you no longer want it.
+services:
+  dozzle:
+    image: amir20/dozzle:v11.4.0-alpine
+    restart: unless-stopped
+    environment:
+      DOZZLE_BASE: /logs              # served at /logs ; Caddy must NOT strip the prefix
+      DOZZLE_NO_ANALYTICS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      proxy:
+        aliases: [dozzle]
+
+networks:
+  proxy:
+    external: true
+    name: proxy

@@ -31,6 +31,16 @@ qyo7ixnxmemepulm.myfritz.net {
       reverse_proxy n8n:5678
   }
 
+	# Dozzle (container logs) under /logs ; it knows its prefix (DOZZLE_BASE), so NO stripping.
+	# Protected by basic auth: user "admin". Change the hash with: caddy hash-password
+	@logs path /logs /logs/*
+	handle @logs {
+		basic_auth {
+			admin $2a$14$M5eNL.oKgoJNILq5sECf6.PGoDQFAEksyoLzED6bF5t3PY9ATz0Zy
+		}
+		reverse_proxy dozzle:8080
+	}
+
 	# Matrix: fixed paths at the root, no prefix, no stripping.
 	@matrix path /_matrix/* /_synapse/client/*
 	handle @matrix {
