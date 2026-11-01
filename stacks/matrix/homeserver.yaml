@@ -1,0 +1,23 @@
+server_name: "Yuugo "   # permanent, not changable after first start
+public_baseurl: "https://qyo7ixnxmemepulm.myfritz.net/"
+report_stats: false
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    bind_addresses: ["::"]
+    resources:
+      - names: [client, federation]
+        compress: false
+
+signing_key_path: "/data/qyo7ixnxmemepulm.myfritz.net.signing.key"
+media_store_path: /data/media_store
+max_upload_size: 50M
+
+enable_registration: false
+suppress_key_server_warning: true
+trusted_key_servers:
+  - server_name: "matrix.org"
