@@ -1,36 +1,31 @@
-# Synapse (Matrix) behind Caddy. Fully declarative: no manual commands needed.
-# - "init" runs once per deploy: generates homeserver.yaml + signing key on first run,
-#   then patches Postgres / public URL into it (scripts in ./init).
-# - "create-admin" registers the admin user from secrets.enc.env (safe to re-run).
-# Client/federation paths live at the domain root (/_matrix/*), see Caddyfile.
-# Changing POSTGRES_PASSWORD later: re-run init (redeploy) AND change it inside postgres.
+# Synapse (Matrix) behind Caddy. Config lives in git: homeserver.yaml (settings)
+# plus a secrets.yaml rendered from secrets.enc.env. Needs Compose >= 2.23.1.
+x-synapse: &synapse
+  image: matrixdotorg/synapse:v1.164.1
+  entrypoint: ["python", "-m", "synapse.app.homeserver",
+               "-c", "/config/homeserver.yaml", "-c", "/config/secrets.yaml"]
+  configs:
+    - source: homeserver
+      target: /config/homeserver.yaml
+    - source: secrets
+      target: /config/secrets.yaml
+  volumes:
+    - /srv/data/matrix/synapse:/data   # /tmp/data3/... while testing
+
 services:
-  init:
-    image: matrixdotorg/synapse:v1.164.1
+  keys:
+    <<: *synapse
     restart: "no"
-    entrypoint: ["/bin/sh", "/init/init.sh"]
-    environment:
-      SYNAPSE_SERVER_NAME: qyo7ixnxmemepulm.myfritz.net   # permanent, cannot change later
-      SYNAPSE_REPORT_STATS: "no"
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in secrets.enc.env}
-    volumes:
-      # - /srv/data/matrix/synapse:/data
-      - /tmp/data3/matrix/synapse:/data
-      - ./init:/init:ro
+    command: ["--generate-keys"]   # only creates the signing key if missing
 
   synapse:
-    image: matrixdotorg/synapse:latest
+    <<: *synapse
     restart: unless-stopped
     depends_on:
-      init:
+      keys:
         condition: service_completed_successfully
       db:
         condition: service_healthy
-    environment:
-      SYNAPSE_SERVER_NAME: qyo7ixnxmemepulm.myfritz.net
-    volumes:
-      # - /srv/data/matrix/synapse:/data
-      - /tmp/data3/matrix/synapse:/data
     networks:
       proxy:
         aliases: [synapse]
@@ -43,7 +38,6 @@ services:
       POSTGRES_USER: synapse
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in secrets.enc.env}
       POSTGRES_DB: synapse
-      # Synapse requires C collation.
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U synapse -d synapse"]
@@ -60,16 +54,36 @@ services:
     restart: "no"
     depends_on:
       - synapse
-    entrypoint: ["/bin/sh", "/init/create-admin.sh"]
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until python -c "import urllib.request as u; u.urlopen('http://synapse:8008/health')"; do sleep 2; done
+        register_new_matrix_user -u "$$MATRIX_ADMIN_USER" -p "$$MATRIX_ADMIN_PASSWORD" -a \
+          -k "$$SYNAPSE_REGISTRATION_SECRET" http://synapse:8008 || echo "admin exists or failed"
     environment:
-      MATRIX_ADMIN_USER: ${MATRIX_ADMIN_USER:?set in secrets.enc.env}
-      MATRIX_ADMIN_PASSWORD: ${MATRIX_ADMIN_PASSWORD:?set in secrets.enc.env}
-    volumes:
-      # - /srv/data/matrix/synapse:/data:ro
-      - /tmp/data3/matrix/synapse:/data:ro
-      - ./init:/init:ro
+      MATRIX_ADMIN_USER: ${MATRIX_ADMIN_USER:?}
+      MATRIX_ADMIN_PASSWORD: ${MATRIX_ADMIN_PASSWORD:?}
+      SYNAPSE_REGISTRATION_SECRET: ${SYNAPSE_REGISTRATION_SECRET:?}
     networks:
       - proxy
+
+configs:
+  homeserver:
+    file: ./homeserver.yaml
+  secrets:
+    content: |
+      database:
+        name: psycopg2
+        args:
+          user: synapse
+          password: "${POSTGRES_PASSWORD}"
+          database: synapse
+          host: db
+          cp_min: 5
+          cp_max: 10
+      registration_shared_secret: "${SYNAPSE_REGISTRATION_SECRET}"
+      macaroon_secret_key: "${SYNAPSE_MACAROON_SECRET}"
+      form_secret: "${SYNAPSE_FORM_SECRET}"
 
 networks:
   proxy:
