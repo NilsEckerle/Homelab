@@ -1,4 +1,4 @@
-server_name: "Yuugo "   # permanent, not changable after first start
+server_name: "qyo7ixnxmemepulm.myfritz.net"   # permanent, not changable after first start
 public_baseurl: "https://qyo7ixnxmemepulm.myfritz.net/"
 report_stats: false
 pid_file: /data/homeserver.pid
