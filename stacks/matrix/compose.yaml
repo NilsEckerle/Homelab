@@ -9,14 +9,16 @@ x-synapse: &synapse
       target: /config/homeserver.yaml
     - source: secrets
       target: /config/secrets.yaml
+    - source: discord_registration
+      target: /config/mautrix-discord-registration.yaml
   volumes:
-    - /srv/data/matrix/synapse:/data   # /tmp/data3/... while testing
+    - /srv/data/matrix/synapse:/data
 
 services:
   keys:
     <<: *synapse
     restart: "no"
-    command: ["--generate-keys"]   # only creates the signing key if missing
+    command: ["--generate-keys"]
 
   synapse:
     <<: *synapse
@@ -67,6 +69,18 @@ services:
     networks:
       - proxy
 
+  mautrix-discord:
+    image: dock.mau.dev/mautrix/discord:v0.7.7
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    configs:
+      - source: discord_config
+        target: /data/config.yaml
+    networks:
+      - internal
+
 configs:
   homeserver:
     file: ./homeserver.yaml
@@ -84,6 +98,37 @@ configs:
       registration_shared_secret: "${SYNAPSE_REGISTRATION_SECRET}"
       macaroon_secret_key: "${SYNAPSE_MACAROON_SECRET}"
       form_secret: "${SYNAPSE_FORM_SECRET}"
+  discord_config:
+    content: |
+      homeserver:
+        address: http://synapse:8008
+        domain: qyo7ixnxmemepulm.myfritz.net
+      appservice:
+        address: http://mautrix-discord:29334
+        hostname: 0.0.0.0
+        port: 29334
+        id: discord
+        as_token: "${DISCORD_AS_TOKEN}"
+        hs_token: "${DISCORD_HS_TOKEN}"
+        database:
+          type: postgres
+          uri: postgres://synapse:${POSTGRES_PASSWORD}@db/mautrix_discord?sslmode=disable
+      bridge:
+        permissions:
+          "qyo7ixnxmemepulm.myfritz.net": user
+          "@nils:qyo7ixnxmemepulm.myfritz.net": admin
+  discord_registration:
+    content: |
+      id: discord
+      url: http://mautrix-discord:29334
+      as_token: "${DISCORD_AS_TOKEN}"
+      hs_token: "${DISCORD_HS_TOKEN}"
+      sender_localpart: discordbot
+      rate_limited: false
+      namespaces:
+        users:
+          - regex: "@discord_.*:qyo7ixnxmemepulm.myfritz.net"
+            exclusive: true
 
 networks:
   proxy:

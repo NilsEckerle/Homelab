@@ -21,3 +21,6 @@ enable_registration: false
 suppress_key_server_warning: true
 trusted_key_servers:
   - server_name: "matrix.org"
+
+app_service_config_files:
+  - /config/mautrix-discord-registration.yaml
