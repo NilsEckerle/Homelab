@@ -54,7 +54,9 @@ services:
       USERMAP_GID: "1008"
       PAPERLESS_OCR_LANGUAGES: deu eng
       PAPERLESS_OCR_LANGUAGE: deu
-      PAPERLESS_URL: http://homelab.tail5790e3.ts.net
+      PAPERLESS_FORCE_SCRIPT_NAME: /paperless
+      PAPERLESS_STATIC_URL: /paperless/static/
+      PAPERLESS_URL: https://homelab.tail5790e3.ts.net
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?}
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_DBHOST: db
