@@ -4,8 +4,14 @@ services:
     restart: unless-stopped
     environment:
       DOZZLE_NO_ANALYTICS: "true"
-    ports:
-      - "100.116.20.64:8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /srv/data/dozzle:/data
+    networks:
+      tailnet:
+        aliases: [dozzle]
+
+networks:
+  tailnet:
+    external: true
+    name: tailnet
