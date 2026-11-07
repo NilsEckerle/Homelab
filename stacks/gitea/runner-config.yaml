@@ -1,6 +1,7 @@
 runner:
   capacity: 1
 container:
+  dns: [1.1.1.1, 9.9.9.9]
   network: proxy
   valid_volumes:
     - '**'
