@@ -52,6 +52,9 @@ services:
     restart: unless-stopped
     depends_on: [server]
     networks: [default, proxy]
+    dns:
+      - 1.1.1.1
+      - 9.9.9.9
     environment:
       - GITEA_INSTANCE_URL=http://server:3000
       - GITEA_RUNNER_NAME=kagari
